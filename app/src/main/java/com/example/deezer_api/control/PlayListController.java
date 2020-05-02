@@ -20,7 +20,13 @@ public class PlayListController implements HTTPSWebUtilDomi.OnResponseListener {
         this.playListActivity = playListActivity;
         this.util = new HTTPSWebUtilDomi();
         this.util.setListener(this);
-        loadPlayList(playListActivity.getPlayList().getId());
+
+        //Loads the playlist
+        new Thread(
+                () -> {
+                    util.GETrequest(Constants.PLAYLIST_CALLBACK, "https://api.deezer.com/playlist/" + playListActivity.getPlayList().getId());
+                }
+        ).start();
     }
 
     @Override
@@ -28,7 +34,16 @@ public class PlayListController implements HTTPSWebUtilDomi.OnResponseListener {
         Gson gson = new Gson();
         if (callbackID == Constants.PLAYLIST_CALLBACK) {
             this.playList = gson.fromJson(response, PlayList.class);
-            loadView();
+
+            //Loads the view
+            playListActivity.runOnUiThread(
+                    () -> {
+                        playListActivity.getPlayListNameTv().setText(playList.getTitle());
+                        playListActivity.getNumTracksTV().setText("Tracks: " + playList.getNb_tracks());
+                        Glide.with(playListActivity).load(playList.getPicture_big()).centerCrop().into(playListActivity.getBanner());
+                        playListActivity.getPlayListDescriptionTv().setText(playList.getDescription());
+                    }
+            );
             loadTracks(playList.getTracks().getData());
         } else if (callbackID == Constants.TRACK_CALLBACK) {
             Track track = gson.fromJson(response, Track.class);
@@ -42,25 +57,6 @@ public class PlayListController implements HTTPSWebUtilDomi.OnResponseListener {
         }
     }
 
-    public void loadView() {
-        playListActivity.runOnUiThread(
-                () -> {
-                    playListActivity.getPlayListNameTv().setText(playList.getTitle());
-                    playListActivity.getNumTracksTV().setText("Tracks: " + playList.getNb_tracks());
-                    Glide.with(playListActivity).load(playList.getPicture_big()).centerCrop().into(playListActivity.getBanner());
-                    playListActivity.getPlayListDescriptionTv().setText(playList.getDescription());
-                }
-        );
-    }
-
-    public void loadPlayList(long id) {
-        new Thread(
-                () -> {
-                    util.GETrequest(Constants.PLAYLIST_CALLBACK, "https://api.deezer.com/playlist/" + id);
-                }
-        ).start();
-    }
-
     public void loadTrack(long id) {
         new Thread(
                 () -> {
@@ -70,8 +66,8 @@ public class PlayListController implements HTTPSWebUtilDomi.OnResponseListener {
     }
 
     public void loadTracks(Track[] data) {
-        trackList = new Track[data.length];
         flag = 0;
+        trackList = new Track[data.length];
 
         for (int i = 0; i < data.length; i++) {
             if (data[i] != null) {

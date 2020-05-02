@@ -25,44 +25,30 @@ public class MainController implements View.OnClickListener, HTTPSWebUtilDomi.On
 
     @Override
     public void onClick(View view) {
-        try {
-            switch (view.getId()) {
-                case R.id.searchButton:
-
-                    String nameList = activity.getSearchPlaylistET().getText().toString();
-
-                    new Thread(
-                            () -> {
-                                util.GETrequest(Constants.SEARCH_CALLBACK, "https://api.deezer.com/search/playlist?q=" + nameList);
-                            }
-                    ).start();
-
-                    break;
-            }
-        } catch (Exception e) {
+        if(view.getId() == R.id.searchButton){
+            String nameList = activity.getSearchPlaylistET().getText().toString();
+            new Thread(
+                    () -> {
+                        util.GETrequest(Constants.SEARCH_CALLBACK, "https://api.deezer.com/search/playlist?q=" + nameList);
+                    }
+            ).start();
         }
     }
 
     @Override
     public void onResponse(int callbackID, String response) {
-        try {
-            switch (callbackID) {
-                case Constants.SEARCH_CALLBACK:
-                    Gson gson = new Gson();
-                    list = gson.fromJson(response, List.class);
-                    if (list.getData() != null) {
-                        activity.runOnUiThread(
-                                () -> {
-                                    ListAdapter adapter = new ListAdapter(activity, list.getData());
-                                    activity.setAdapter(adapter);
-                                    activity.getRecyclerView().setAdapter(adapter);
-                                }
-                        );
-                    }
-
-                    break;
+        if(callbackID == Constants.SEARCH_CALLBACK){
+            Gson gson = new Gson();
+            list = gson.fromJson(response, List.class);
+            if (list.getData() != null) {
+                activity.runOnUiThread(
+                        () -> {
+                            ListAdapter adapter = new ListAdapter(activity, list.getData());
+                            activity.setAdapter(adapter);
+                            activity.getRecyclerView().setAdapter(adapter);
+                        }
+                );
             }
-        } catch (Exception e) {
         }
     }
 }

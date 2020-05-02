@@ -18,7 +18,16 @@ public class TrackController implements View.OnClickListener {
         this.trackActivity = trackActivity;
         this.track = trackActivity.getTrack();
         trackActivity.getPlayBtn().setOnClickListener(this);
-        loadView();
+
+        trackActivity.runOnUiThread(
+                () -> {
+                    trackActivity.getNameTV().setText(track.getTitle());
+                    trackActivity.getArtistTV().setText(track.getArtist().getName());
+                    trackActivity.getAlbumTV().setText(track.getAlbum().getTitle());
+                    trackActivity.getDurationTV().setText(track.getDuration() + " seconds");
+                    Glide.with(trackActivity).load(track.getAlbum().getCover_big()).centerCrop().into(trackActivity.getImage());
+                }
+        );
     }
 
     @Override
@@ -30,15 +39,4 @@ public class TrackController implements View.OnClickListener {
         }
     }
 
-    private void loadView() {
-        trackActivity.runOnUiThread(
-                () -> {
-                    trackActivity.getNameTV().setText(track.getTitle());
-                    trackActivity.getArtistTV().setText(track.getArtist().getName());
-                    trackActivity.getAlbumTV().setText(track.getAlbum().getTitle());
-                    trackActivity.getDurationTV().setText(track.getDuration() + " seconds");
-                    Glide.with(trackActivity).load(track.getAlbum().getCover_big()).centerCrop().into(trackActivity.getImage());
-                }
-        );
-    }
 }
